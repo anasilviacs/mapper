@@ -1,5 +1,7 @@
 import xmltodict
 
+# Arguments: percolator features, .MzIdentML
+
 # parse mzid file: xmltodict imports it as a dictionary
 with open('data/velos_pyr_entrapment_decoys.mzid') as fd:
      doc = xmltodict.parse(fd.read())
@@ -21,4 +23,6 @@ for i in range(len(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumI
         perc_id = hit['@id'] + '_' + hit['@chargeState'] + '_' + hit['@rank']
         title = spectrum['cvParam']['@value']
         mapper[perc_id] = title
-        
+
+# open percolator features; add column with mgf title
+# perc[perc['SpecId'].str.contains("perc_id")]
