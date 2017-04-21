@@ -1,9 +1,16 @@
+import argparse
 import xmltodict
+import pandas as pd
 
 # Arguments: percolator features, .MzIdentML
+parser = argparse.ArgumentParser(description="Take pin file built with Percolator's msgf2pin and add the 'TITLE' from the mgf file")
+parser.add_argument('-m', dest='mgf', help='Path to mgf file')
+parser.add_argument('-p', dest='pin', help='Path to pin file')
+
+args = parser.parse_args()
 
 # parse mzid file: xmltodict imports it as a dictionary
-with open('data/velos_pyr_entrapment_decoys.mzid') as fd:
+with open(args.mgf) as fd:
      doc = xmltodict.parse(fd.read())
 
 mapper = {}
@@ -26,3 +33,22 @@ for i in range(len(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumI
 
 # open percolator features; add column with mgf title
 # perc[perc['SpecId'].str.contains("perc_id")]
+def lazy_pin_parser(path):
+    """
+    To parse the pin file. In some rows, the "Proteins" column contains
+    tab-separated values. For this normal parsers don't work too well. This is a
+     lazily built parser that addresses this
+    """
+    f = open(path)
+    rows = f.readlines()
+    for i, row in enumerate(rows):
+        if i == 0: data = pd.DataFrame(columns=row.split('\t')); n_rows = len(row.split('\t'))
+        if i == 1: continue # row 1 is initial direction
+        else:
+            r = row.split('\t')
+            tmp = []
+            for j in range(n_rows-1):
+                tmp.append(r[j])
+            tmp.append('|'.join(r[n_rows-1:]).rstrip('\n'))
+            data.loc[i-1] = tmp
+    return data
