@@ -32,18 +32,18 @@ for i in range(len(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumI
         mapper[perc_id] = title
 
 # open percolator features; add column with mgf title
-# perc[perc['SpecId'].str.contains("perc_id")]
+
 def lazy_pin_parser(path):
     """
     To parse the pin file. In some rows, the "Proteins" column contains
-    tab-separated values. For this normal parsers don't work too well. This is a
-     lazily built parser that addresses this
+    tab-separated values. Because of this normal parsers don't work too well.
+    This is a lazily built parser that addresses this.
     """
     f = open(path)
     rows = f.readlines()
     for i, row in enumerate(rows):
         if i == 0: data = pd.DataFrame(columns=row.split('\t')); n_rows = len(row.split('\t'))
-        if i == 1: continue # row 1 is initial direction
+        elif i == 1: continue # row 1 is initial direction
         else:
             r = row.split('\t')
             tmp = []
