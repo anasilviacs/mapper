@@ -10,7 +10,7 @@ parser.add_argument('-p', dest='pin', help='Path to pin file')
 args = parser.parse_args()
 
 # parse mzid file: xmltodict imports it as a dictionary
-with open(args.mgf) as fd:
+with open(args.mzml) as fd:
      doc = xmltodict.parse(fd.read())
 
 mapper = {}
