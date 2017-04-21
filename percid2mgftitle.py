@@ -4,7 +4,7 @@ import pandas as pd
 
 # Arguments: percolator features, .MzIdentML
 parser = argparse.ArgumentParser(description="Take pin file built with Percolator's msgf2pin and add the 'TITLE' from the mgf file")
-parser.add_argument('-m', dest='mgf', help='Path to mgf file')
+parser.add_argument('-m', dest='mzml', help='Path to mzml file')
 parser.add_argument('-p', dest='pin', help='Path to pin file')
 
 args = parser.parse_args()
