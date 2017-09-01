@@ -37,6 +37,7 @@ def lazy_pin_parser(path):
     """
     f = open(path)
     rows = f.readlines()
+    data = pd.DataFrame() # avoiding error, will check later
     for i, row in enumerate(rows):
         if i == 0:
             data = pd.DataFrame(columns=[r.translate({'"': None}).rstrip('\n') for r in row.split('\t')])
