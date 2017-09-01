@@ -52,7 +52,7 @@ def lazy_pin_parser(path):
     return data
 
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Take pin file built with Percolator's msgf2pin and add the 'TITLE' from the mgf file")
     parser.add_argument('-m', dest='mzml', help='Path to single mzml file (concatenated search)')
     parser.add_argument('-t', dest='targets', help='Path to target search mzml file')
