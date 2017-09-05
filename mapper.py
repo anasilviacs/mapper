@@ -29,28 +29,28 @@ def get_indices(doc):
 
     return index_map
 
-def lazy_pin_parser(path):
+def fix_pin_tabs(path):
     """
-    To parse the pin file. In some rows, the "Proteins" column contains
-    tab-separated values. Because of this normal parsers don't work too well.
-    This is a lazily built parser that addresses this.
+    Takes a pin file and re-writes it, replacing the tabs that separate the
+    Proteins column with pipes
     """
     f = open(path)
     rows = f.readlines()
-    data = pd.DataFrame() # avoiding error, will check later
+    outfile = path.rstrip('.pin') + '_fixed.pin'
+    out = open(outfile, 'w+')
+
     for i, row in enumerate(rows):
-        if i == 0:
-            data = pd.DataFrame(columns=[r.translate({'"': None}).rstrip('\n') for r in row.split('\t')])
-            n_rows = len(row.split('\t'))
-        elif i == 1: continue # row 1 is initial direction
+        if i < 2:
+            print(row)
+            out.write(row)
         else:
             r = row.split('\t')
             tmp = []
-            for j in range(n_rows-1):
+            for j in range(34):
                 tmp.append(r[j])
-            tmp.append('|'.join(r[n_rows-1:]).rstrip('\n'))
-            data.loc[i-1] = tmp
-    return data
+            tmp.append('|'.join(r[34:]))
+            out.write('\t'.join(tmp))
+    return None
 
 def map_mgf_title(pin, mzid, decoy_mzid=None):
     """
@@ -113,9 +113,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # open percolator features; add column with mgf title
+    sys.stdout.write('Fixing tabs on pin file... ')
+    sys.stdout.flush()
+    fix_pin_tabs(args.pin)
+    sys.stdout.write('Done! \n')
+    sys.stdout.flush()
+
     sys.stdout.write('Parsing pin file... ')
     sys.stdout.flush()
-    pin = lazy_pin_parser(args.pin)
+    pin = pd.read_csv(args.pin.rstrip('.pin') + '_fixed.pin', header=0, skiprows=[1], sep='\t')
     sys.stdout.write('Done! \n')
     sys.stdout.flush()
 
