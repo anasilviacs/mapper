@@ -41,7 +41,6 @@ def fix_pin_tabs(path):
 
     for i, row in enumerate(rows):
         if i < 2:
-            print(row)
             out.write(row)
         else:
             r = row.split('\t')
@@ -69,7 +68,7 @@ def map_mgf_title(pin, mzid, decoy_mzid=None):
         #  SpecId to its mgf TITLE
         title_map = get_indices(doc)
         # Adding mgf "TITLE" column.
-        for i in range(1, len(pin)+1): # because index starts at 1
+        for i in range(len(pin)): # because index starts at 1
             k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-6:-3])
             if k in title_map.keys():
                 pin.loc[i, 'TITLE'] = title_map[k]
@@ -86,7 +85,7 @@ def map_mgf_title(pin, mzid, decoy_mzid=None):
              doc = xmltodict.parse(fd.read())
         title_map_decoys = get_indices(doc)
 
-        for i in range(1, len(pin)+1): # because index starts at 1
+        for i in range(len(pin)):
             k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-6:-3])
             if pin.loc[i, 'Label'] == "-1":
                 if k in title_map_decoys.keys():
@@ -100,8 +99,7 @@ def map_mgf_title(pin, mzid, decoy_mzid=None):
                 else:
                     sys.stdout.write('oops\n')
                     continue
-
-        return pin
+    return pin
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Take pin file built with Percolator's msgf2pin and add the 'TITLE' from the mgf file")
