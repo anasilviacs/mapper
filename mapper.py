@@ -40,14 +40,16 @@ def fix_pin_tabs(path):
     out = open(outfile, 'w+')
 
     for i, row in enumerate(rows):
-        if i < 2:
+        if i == 0:
+            numcol = len(row.split('\t'))
+        elif i < 2:
             out.write(row)
         else:
             r = row.split('\t')
             tmp = []
-            for j in range(34):
+            for j in range(numcol):
                 tmp.append(r[j])
-            tmp.append('|'.join(r[34:]))
+            tmp.append('|'.join(r[numcol:]))
             out.write('\t'.join(tmp))
     return None
 
