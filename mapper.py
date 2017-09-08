@@ -49,7 +49,7 @@ def fix_pin_tabs(path):
             tmp = []
             for j in range(numcol):
                 tmp.append(r[j])
-            tmp.append('|'.join(r[numcol:]))
+            tmp.append(';'.join(r[numcol:]))
             out.write('\t'.join(tmp))
     return None
 
