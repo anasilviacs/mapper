@@ -36,7 +36,7 @@ def fix_pin_tabs(path):
     """
     f = open(path)
     rows = f.readlines()
-    outfile = path.rstrip('.pin') + '_fixed.pin'
+    # outfile = path.rstrip('.pin') + '_fixed.pin'
     out = open(outfile, 'w+')
 
     for i, row in enumerate(rows):
