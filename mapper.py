@@ -42,15 +42,19 @@ def fix_pin_tabs(path):
     for i, row in enumerate(rows):
         if i == 0:
             numcol = len(row.split('\t'))
-        elif i < 2:
+            out.write(row)
+        elif i == 1:
             out.write(row)
         else:
-            r = row.split('\t')
+            r = row.rstrip('\n').split('\t')
             tmp = []
             for j in range(numcol):
                 tmp.append(r[j])
             tmp.append(';'.join(r[numcol:]))
-            out.write('\t'.join(tmp))
+            out.write('\t'.join(tmp[:numcol]))
+            out.write('\n')
+    f.close()
+    out.close()
     return None
 
 def map_mgf_title(pin, mzid, decoy_mzid=None):
@@ -60,6 +64,7 @@ def map_mgf_title(pin, mzid, decoy_mzid=None):
     separately).
     """
     pin['TITLE'] = [None] * len(pin)
+
     # parse mzid file: xmltodict imports it as a dictionary
     # concatenated searches yield one mzid
     if not decoy_mzid:
@@ -70,7 +75,7 @@ def map_mgf_title(pin, mzid, decoy_mzid=None):
         #  SpecId to its mgf TITLE
         title_map = get_indices(doc)
         # Adding mgf "TITLE" column.
-        for i in range(len(pin)): # because index starts at 1
+        for i in range(1, len(pin)): # because index starts at 1
             k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-6:-3])
             if k in title_map.keys():
                 pin.loc[i, 'TITLE'] = title_map[k]
@@ -87,7 +92,7 @@ def map_mgf_title(pin, mzid, decoy_mzid=None):
              doc = xmltodict.parse(fd.read())
         title_map_decoys = get_indices(doc)
 
-        for i in range(len(pin)):
+        for i in range(1, len(pin)):
             k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-6:-3])
             if pin.loc[i, 'Label'] == "-1":
                 if k in title_map_decoys.keys():
