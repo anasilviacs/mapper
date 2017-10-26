@@ -17,7 +17,12 @@ def get_indices(doc):
                 hit = spectrum['SpectrumIdentificationItem'][j]
                 # perc_id = hit['@id'] + '_' + hit['@chargeState'] + '_' + hit['@rank']
                 perc_id = hit['@id']
-                title = spectrum['cvParam']['@value']
+                if type(spectrum['cvParam']) == list:
+                    for k,d in enumerate(spectrum['cvParam']):
+                        if 'spectrum title' in d.values(): title = spectrum['cvParam'][k]['@value']
+                        else: continue
+                else:
+                    title = spectrum['cvParam']['@value']
                 index_map[perc_id] = title
         else:
             spectrum = doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'][i]
