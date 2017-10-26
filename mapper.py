@@ -22,9 +22,13 @@ def get_indices(doc):
         else:
             spectrum = doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'][i]
             hit = spectrum['SpectrumIdentificationItem']
-            # perc_id = hit['@id'] + '_' + hit['@chargeState'] + '_' + hit['@rank']
             perc_id = hit['@id']
-            title = spectrum['cvParam']['@value']
+            if type(spectrum['cvParam']) == list:
+                for k,d in enumerate(spectrum['cvParam']):
+                    if 'spectrum title' in d.values(): title = spectrum['cvParam'][k]['@value']
+                    else: continue
+            else:
+                title = spectrum['cvParam']['@value']
             index_map[perc_id] = title
 
     return index_map
@@ -116,17 +120,17 @@ if __name__ == "__main__":
     parser.add_argument('-p', dest='pin', help='Path to pin file')
 
     args = parser.parse_args()
-
+    """
     # open percolator features; add column with mgf title
     sys.stdout.write('Fixing tabs on pin file... ')
     sys.stdout.flush()
     fix_pin_tabs(args.pin)
     sys.stdout.write('Done! \n')
     sys.stdout.flush()
-
+    """
     sys.stdout.write('Parsing pin file... ')
     sys.stdout.flush()
-    pin = pd.read_csv(args.pin.rstrip('.pin') + '_fixed.pin', header=0, skiprows=[1], sep='\t')
+    pin = pd.read_csv(args.pin, header=0, skiprows=[1], sep='\t')
     sys.stdout.write('Done! \n')
     sys.stdout.flush()
 
