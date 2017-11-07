@@ -84,7 +84,7 @@ def map_mgf_title(pin, mzid, decoy_mzid=None):
         #  SpecId to its mgf TITLE
         title_map = get_indices(doc)
         # Adding mgf "TITLE" column.
-        for i in range(1, len(pin)): # because index starts at 1
+        for i in range(len(pin)):
             k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-6:-3])
             if k in title_map.keys():
                 pin.loc[i, 'TITLE'] = title_map[k]
@@ -125,17 +125,17 @@ if __name__ == "__main__":
     parser.add_argument('-p', dest='pin', help='Path to pin file')
 
     args = parser.parse_args()
-    """
+
     # open percolator features; add column with mgf title
     sys.stdout.write('Fixing tabs on pin file... ')
     sys.stdout.flush()
     fix_pin_tabs(args.pin)
     sys.stdout.write('Done! \n')
     sys.stdout.flush()
-    """
+
     sys.stdout.write('Parsing pin file... ')
     sys.stdout.flush()
-    pin = pd.read_csv(args.pin, header=0, skiprows=[1], sep='\t')
+    pin = pd.read_csv(args.pin, header=0, sep='\t')
     sys.stdout.write('Done! \n')
     sys.stdout.flush()
 
