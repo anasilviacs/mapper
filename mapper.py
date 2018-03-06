@@ -72,7 +72,7 @@ def map_mgf_title(path_to_pin, path_to_mzid, path_to_decoy_mzid=None):
     the search was concatenated, two if the target and decoy searches were ran
     separately).
     """
-    pin = pd.read_csv(args.spec_file + ".pin", header=0, skiprows=[1], sep='\t')
+    pin = pd.read_csv(path_to_pin, header=0, skiprows=[1], sep='\t')
     pin['TITLE'] = [None] * len(pin)
 
     # parse mzid file: xmltodict imports it as a dictionary
