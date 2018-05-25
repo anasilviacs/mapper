@@ -11,36 +11,9 @@ def get_indices(doc):
     the Percolator index. Save these correspondences in a dictionary
     """
     index_map = {}
-    """
-    for i in range(len(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'])):
-        if type(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'][i]['SpectrumIdentificationItem']) is list:
-            for j in range(len(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'][i]['SpectrumIdentificationItem'])):
-                spectrum = doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'][i]
-                hit = spectrum['SpectrumIdentificationItem'][j]
-                # perc_id = hit['@id'] + '_' + hit['@chargeState'] + '_' + hit['@rank']
-                perc_id = hit['@id']
-                if type(spectrum['cvParam']) == list:
-                    for k,d in enumerate(spectrum['cvParam']):
-                        if 'spectrum title' in d.values(): title = spectrum['cvParam'][k]['@value']
-                        else: continue
-                else:
-                    title = spectrum['cvParam']['@value']
-                index_map[perc_id] = title
-        else:
-            spectrum = doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'][i]
-            hit = spectrum['SpectrumIdentificationItem']
-            perc_id = hit['@id']
-            if type(spectrum['cvParam']) == list:
-                for k,d in enumerate(spectrum['cvParam']):
-                    if 'spectrum title' in d.values(): title = spectrum['cvParam'][k]['@value']
-                    else: continue
-            else:
-                title = spectrum['cvParam']['@value']
-            index_map[perc_id] = title
-    """
     with mzid.read(doc) as reader:
         for psm in reader:
-            index_map[psm['spectrum title']] = psm['spectrumID'].split('=')[-1]
+            index_map[psm['spectrumID'].split('=')[-1] + '_' + str(psm['SpectrumIdentificationItem'][0]['rank'])] = psm['spectrum title']
     return index_map
 
 def fix_pin_tabs(path):
@@ -86,14 +59,15 @@ def map_mgf_title(path_to_pin, path_to_mzid, path_to_decoy_mzid=None):
         # Use get_indices() to get a dictionary that corresponds each percolator
         #  SpecId to its mgf TITLE
         title_map = get_indices(path_to_mzid)
+        print(title_map.keys())
         # Adding mgf "TITLE" column.
         for i in range(len(pin)):
-            k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-6:-3])
+            k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-5:-3])
             if k in title_map.keys():
+                print(k, title_map[k])
                 pin.loc[i, 'TITLE'] = title_map[k]
             else:
                 continue
-
     # for separate target-decoy there are two mzid
     else:
         title_map_targets = get_indices(path_to_mzid)
