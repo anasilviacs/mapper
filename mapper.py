@@ -59,12 +59,10 @@ def map_mgf_title(path_to_pin, path_to_mzid, path_to_decoy_mzid=None):
         # Use get_indices() to get a dictionary that corresponds each percolator
         #  SpecId to its mgf TITLE
         title_map = get_indices(path_to_mzid)
-        print(title_map.keys())
         # Adding mgf "TITLE" column.
         for i in range(len(pin)):
             k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-5:-3])
             if k in title_map.keys():
-                print(k, title_map[k])
                 pin.loc[i, 'TITLE'] = title_map[k]
             else:
                 continue
