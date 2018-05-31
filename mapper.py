@@ -1,5 +1,4 @@
 import argparse
-import xmltodict
 import pandas as pd
 import sys
 from pyteomics import mzid
