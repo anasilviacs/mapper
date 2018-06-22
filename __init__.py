@@ -1,1 +1,1 @@
-from mapper import mapper
+from mapper.mapper import *
