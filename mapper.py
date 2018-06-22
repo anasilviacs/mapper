@@ -7,7 +7,8 @@ def get_indices(doc):
     """
     Given a dictionary with the .mzid file, go through every
     SpectrumIdentificationResult and match the mgf TITLE to the initial part of
-    the Percolator index. Save these correspondences in a dictionary
+    the Percolator index. Save these correspondences in a dictionary.
+    https://github.com/percolator/percolator/issues/147
     """
     index_map = {}
     for i in range(len(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'])):
