@@ -103,7 +103,7 @@ def map_mgf_title(path_to_pin, path_to_mzid, path_to_decoy_mzid=None):
              doc = xmltodict.parse(fd.read())
         title_map_decoys = get_indices(doc)
 
-        for i in range(1, len(pin)):
+        for i in range(0, len(pin)):
             k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-6:-3])
             if pin.loc[i, 'Label'] == "-1":
                 if k in title_map_decoys.keys():
