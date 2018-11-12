@@ -2,6 +2,8 @@ import argparse
 import xmltodict
 import pandas as pd
 import sys
+import os
+import gc
 
 def get_indices(doc):
     """
@@ -67,34 +69,51 @@ def fix_pin_tabs(path):
     out.close()
     return None
 
-def map_mgf_title(path_to_pin, path_to_mzid, path_to_decoy_mzid=None):
+def map_mgf_title(path_to_pin, path_to_mzid, path_to_decoy_mzid=None, msgs=False):
     """
     Add the TITLE column to the pin file. Processes the MzIdentML file (one if
     the search was concatenated, two if the target and decoy searches were ran
     separately).
     """
-    pin = pd.read_csv(path_to_pin, header=0, skiprows=[1], sep='\t')
-    pin['TITLE'] = [None] * len(pin)
 
     # parse mzid file: xmltodict imports it as a dictionary
     # concatenated searches yield one mzid
     if not path_to_decoy_mzid:
+        if msgs: sys.stdout.write('\n parsing mzid...\n')
         with open(path_to_mzid) as fd:
              doc = xmltodict.parse(fd.read())
 
         # Use get_indices() to get a dictionary that corresponds each percolator
         #  SpecId to its mgf TITLE
+        if msgs: sys.stdout.write(' getting title map from mzid...\n')
         title_map = get_indices(doc)
-        # Adding mgf "TITLE" column.
-        for i in range(len(pin)):
-            k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-6:-3])
-            if k in title_map.keys():
-                pin.loc[i, 'TITLE'] = title_map[k]
-            else:
+        del(doc)
+        gc.collect()
+        # Adding mgf "TITLE" column. Avoiding using pandas due to memory issues
+        if msgs: sys.stdout.write(' reading pin/writing pin_title...\n')
+        pin_title = path_to_pin + '_title'
+        pin_out = open(pin_title, 'w+')
+        pin_in = open(path_to_pin, 'r')
+        for line in pin_in:
+            if line.startswith('SpecId'):
+                pin_out.write(line.rstrip('\n')+'\t'+'TITLE'+'\n')
                 continue
+            elif line.startswith('Default'): continue
+            k = line.split('\t')[0]
+            k = k.split('_')[-6:-3]
+            k = '_'.join(k)
+            if k in title_map.keys():
+                pin_out.write(line.rstrip('\n')+'\t'+title_map[k]+'\n')
+            else:
+                sys.stderr.write("No match found in MGF file for SpecId {}\n".format(line.split('\t')[0]))
+        pin_in.close()
+        pin_out.close()
+        os.rename(path_to_pin + '_title', path_to_pin)
 
-    # for separate target-decoy there are two mzid
+    # for separate target-decoy there are two mzid (haven't removed pandas here)
     else:
+        pin = pd.read_csv(path_to_pin, header=0, skiprows=[1], sep='\t')
+        pin['TITLE'] = [None] * len(pin)
         with open(path_to_mzid) as fd:
              doc = xmltodict.parse(fd.read())
         title_map_targets = get_indices(doc)
@@ -117,7 +136,8 @@ def map_mgf_title(path_to_pin, path_to_mzid, path_to_decoy_mzid=None):
                 else:
                     sys.stdout.write('oops\n')
                     continue
-    pin.to_csv(path_to_pin, sep='\t', index=False)
+        pin.to_csv(path_to_pin, sep='\t', index=False)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Take pin file built with Percolator's msgf2pin and add the 'TITLE' from the mgf file")
