@@ -4,16 +4,20 @@ import pandas as pd
 import sys
 import os
 import gc
+import tqdm
 
-def get_indices(doc):
+def get_indices(path_to_mzid):
     """
     Given a dictionary with the .mzid file, go through every
     SpectrumIdentificationResult and match the mgf TITLE to the initial part of
     the Percolator index. Save these correspondences in a dictionary.
     https://github.com/percolator/percolator/issues/147
     """
+    with open(path_to_mzid) as fd:
+        doc = xmltodict.parse(fd.read())
+
     index_map = {}
-    for i in range(len(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'])):
+    for i in tqdm(range(len(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult']))):
         if type(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'][i]['SpectrumIdentificationItem']) is list:
             for j in range(len(doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'][i]['SpectrumIdentificationItem'])):
                 spectrum = doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'][i]
@@ -38,6 +42,8 @@ def get_indices(doc):
             else:
                 title = spectrum['cvParam']['@value']
             index_map[perc_id] = title
+        del doc['MzIdentML']['DataCollection']['AnalysisData']['SpectrumIdentificationList']['SpectrumIdentificationResult'][i]
+        gc.collect()
 
     return index_map
 
@@ -79,15 +85,10 @@ def map_mgf_title(path_to_pin, path_to_mzid, path_to_decoy_mzid=None, msgs=False
     # parse mzid file: xmltodict imports it as a dictionary
     # concatenated searches yield one mzid
     if not path_to_decoy_mzid:
-        if msgs: sys.stdout.write('\n parsing mzid...\n')
-        with open(path_to_mzid) as fd:
-             doc = xmltodict.parse(fd.read())
-
         # Use get_indices() to get a dictionary that corresponds each percolator
         #  SpecId to its mgf TITLE
-        if msgs: sys.stdout.write(' getting title map from mzid...\n')
-        title_map = get_indices(doc)
-        del(doc)
+        if msgs: sys.stdout.write('\n parsing title map from mzid...\n')
+        title_map = get_indices(path_to_mzid)
         gc.collect()
         # Adding mgf "TITLE" column. Avoiding using pandas due to memory issues
         if msgs: sys.stdout.write(' reading pin/writing pin_title...\n')
@@ -114,13 +115,9 @@ def map_mgf_title(path_to_pin, path_to_mzid, path_to_decoy_mzid=None, msgs=False
     else:
         pin = pd.read_csv(path_to_pin, header=0, skiprows=[1], sep='\t')
         pin['TITLE'] = [None] * len(pin)
-        with open(path_to_mzid) as fd:
-             doc = xmltodict.parse(fd.read())
-        title_map_targets = get_indices(doc)
 
-        with open(path_to_decoy_mzid) as fd:
-             doc = xmltodict.parse(fd.read())
-        title_map_decoys = get_indices(doc)
+        title_map_targets = get_indices(path_to_mzid)
+        title_map_decoys = get_indices(path_to_decoy_mzid)
 
         for i in range(0, len(pin)):
             k = '_'.join(pin.loc[i, 'SpecId'].split('_')[-6:-3])
