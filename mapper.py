@@ -4,9 +4,31 @@ import pandas as pd
 import sys
 import os
 import gc
-import tqdm
+from pyteomics import mzid
 
 def get_indices(path_to_mzid):
+    """
+    Given a dictionary with the .mzid file, go through every
+    SpectrumIdentificationResult and match the mgf TITLE to the initial part of
+    the Percolator index. Save these correspondences in a dictionary.
+    https://github.com/percolator/percolator/issues/147
+    """
+    index_map = {}
+    tid = ""
+
+    with open(path_to_mzid) as f:
+    	for row in f:
+    		if "<SpectrumIdentificationItem" in row:
+    			l=row.rstrip().split('id=')
+    			tid = l[1][1:-2] + row.split('rank=')[1][1]
+    		if 'name="spectrum title"' in row:
+    			l=row.rstrip().split('value=')[1].split(' ')[0]
+    			#id_map[tid] = l[1:-1]
+    			index_map[tid] = l[1:].rstrip('"/>')
+
+    return index_map
+
+def get_indices_old(path_to_mzid):
     """
     Given a dictionary with the .mzid file, go through every
     SpectrumIdentificationResult and match the mgf TITLE to the initial part of
@@ -46,6 +68,19 @@ def get_indices(path_to_mzid):
         gc.collect()
 
     return index_map
+
+def get_indices_pyteomics(path_to_mzid):
+    """
+    Given a dictionary with the .mzid file, go through every
+    SpectrumIdentificationResult and match the mgf TITLE to the initial part of
+    the Percolator index. Save these correspondences in a dictionary.
+    https://github.com/percolator/percolator/issues/147
+    """
+    index_map = {}
+    for a in mzid.read(path_to_mzid):
+         index_map[a['spectrumID'].split('=')[1] + '_' + str(a['SpectrumIdentificationItem'][0]['rank'])] = a['spectrum title']
+    return index_map
+
 
 def fix_pin_tabs(path):
     """
